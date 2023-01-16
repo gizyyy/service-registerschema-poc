@@ -1,7 +1,11 @@
 spring:
+  application:
+    name: cloudbinder-example
   cloud:
     function:
-      definition: sendOrder;receiveOrder
+      routing:
+        enabled: true
+      definition: functionRouter
     stream:
       kafka:
         binder:
@@ -9,16 +13,15 @@ spring:
       bindings: 
         sendOrder-out-0:
           destination: order-topic
+          content-type: application/json
           producer:
             partition-key-expression: headers['partitionKey']
             partition-count: 2
-        receiveOrder-in-0:
+        functionRouter-in-0:
           destination: order-topic
+          content-type: application/json
           group: myGroup
-          concurrency: 2
-        receiveOrder-out-0:  
-          destination: outland-order-topic
-          producer:
-            partition-key-expression: headers['partitionKey']
-            partition-count: 2
-       
+          consumer:
+            concurrency: 2
+            start-offset: latest
+            

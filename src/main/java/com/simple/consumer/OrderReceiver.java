@@ -1,11 +1,9 @@
 package com.simple.consumer;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.StreamsBuilder;
-import org.apache.kafka.streams.kstream.Consumed;
-import org.apache.kafka.streams.kstream.KStream;
+import org.springframework.cloud.function.context.MessageRoutingCallback;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -16,24 +14,36 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class OrderReceiver {
 
+	private static final String LOG_TEMPLATE = "{}\n---\nHEADERS: {}\n...\nPAYLOAD: {}\n---";
+
 	@Bean
-	public Consumer<Message<Order>> receiveOrder() {
-		return message -> log.info("Order received with id {} and type {}", message.getPayload().getId(),
-				message.getHeaders().get("partitionKey"));
+	public MessageRoutingCallback messageRoutingCallback() {
+		return new MessageRoutingCallback() {
+			@Override
+			public FunctionRoutingResult routingResult(Message<?> message) {
+				String functionDefinition = Optional.of(message.getHeaders())
+						.map(messageHeaders -> messageHeaders.get("ce_type").toString())
+						.map(type -> EventTypeToBinding.findByKey(type)).get();
+				return new FunctionRoutingResult(functionDefinition);
+			}
+		};
 	}
 
 	@Bean
-	public KStream<String, Message> processHighSchoolStudents(StreamsBuilder kStreamBuilder) {
+	public Consumer<Message<?>> unknownEvent() {
+		return message -> log.warn("Received unknown event!");
+	}
 
-		KStream<String, Message> inputStream = kStreamBuilder.stream("order-topic",
-				Consumed.with(Serdes.String(), Serdes.serdeFrom(Message.class)));
+	@Bean
+	public Consumer<Message<PrepaidOrder>> prepaidOrder() {
+		return message -> log.info(LOG_TEMPLATE, "Prepaidorder!", message.getHeaders(),
+				message.getPayload().getPaidAmount());
+	}
 
-		KStream<String, Message> inlandStream = inputStream
-				.filter((key, value) -> ((Order) value.getPayload()).isOutland()).peek((key, value) -> System.out
-						.println("key:" + key + " value:" + ((Order) value.getPayload()).getOwner()));
-
-		inlandStream.to("receiveOrder-out-0");
-		return inlandStream;
+	@Bean
+	public Consumer<Message<UnpaidOrder>> unpaidOrder() {
+		return message -> log.info(LOG_TEMPLATE, "Unpaidorder!", message.getHeaders(),
+				message.getPayload().getDueDate());
 	}
 
 }
