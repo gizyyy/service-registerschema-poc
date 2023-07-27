@@ -8,7 +8,6 @@ buildscript {
 
     }
     dependencies {
-        classpath("com.github.imflog:kafka-schema-registry-gradle-plugin:1.10.0")
         classpath group: 'org.apache.avro', name: 'avro-tools', version: '1.11.1'
     }
 }
@@ -71,4 +70,37 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+import org.apache.avro.tool.SpecificCompilerTool
+
+def avroSchemasDir = "src/main/avro"
+def avroCodeGenerationDir = "build/generated-main-avro-java/"
+
+// Add the generated Avro Java code to the Gradle source files.
+sourceSets.main.java.srcDirs += [avroCodeGenerationDir]
+
+tasks.register('avroCodeGeneration') {
+    // Define the task inputs and outputs for the Gradle up-to-date checks.
+    inputs.dir(avroSchemasDir)
+    outputs.dir(avroCodeGenerationDir)
+    // The Avro code generation logs to the standard streams. Redirect the standard streams to the Gradle log.
+    logging.captureStandardOutput(LogLevel.INFO);
+    logging.captureStandardError(LogLevel.ERROR)
+    doLast {
+        // Run the Avro code generation.
+        new SpecificCompilerTool().run(System.in, System.out, System.err, List.of(
+                "-encoding", "UTF-8",
+                "-string",
+                "-bigDecimal",
+                "-fieldVisibility", "private",
+                "-noSetters",
+                "schema", "$projectDir/$avroSchemasDir".toString(), "$projectDir/$avroCodeGenerationDir".toString()
+        ))
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Make Java compilation tasks depend on the Avro code generation task.
+    dependsOn('avroCodeGeneration')
 }

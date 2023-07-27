@@ -12,6 +12,35 @@ services:
       ZOOKEEPER_SERVER_ID: 1
       ZOOKEEPER_SERVERS: zooservice:2888:3888
 
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.3.1
+    container_name: schema-registry
+    restart: unless-stopped
+    depends_on:
+      - kafka1
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka1:29092
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    healthcheck:
+      test: "curl -f http://localhost:8081 || exit 1"
+
+  schema-registry-ui:
+    image: landoop/schema-registry-ui:0.9.5
+    container_name: kafka-schema-registry-ui
+    restart: unless-stopped
+    depends_on:
+      - schema-registry
+    ports:
+      - "8001:8000"
+    environment:
+      SCHEMAREGISTRY_URL: http://schema-registry:8081
+      PROXY: "true"
+    healthcheck:
+      test: "wget --quiet --tries=1 --spider http://localhost:8000 || exit 1"
+
   kafka1:
     image: confluentinc/cp-kafka:7.2.0
     hostname: kafka1

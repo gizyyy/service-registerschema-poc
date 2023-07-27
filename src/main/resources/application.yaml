@@ -1,27 +1,3 @@
 spring:
   application:
     name: cloudbinder-example
-  cloud:
-    function:
-      routing:
-        enabled: true
-      definition: functionRouter
-    stream:
-      kafka:
-        binder:
-          brokers: localhost:9092      
-      bindings: 
-        sendOrder-out-0:
-          destination: order-topic
-          content-type: application/json
-          producer:
-            partition-key-expression: headers['partitionKey']
-            partition-count: 2
-        functionRouter-in-0:
-          destination: order-topic
-          content-type: application/json
-          group: myGroup
-          consumer:
-            concurrency: 2
-            start-offset: latest
-            

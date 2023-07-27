@@ -1,0 +1,21 @@
+server:
+  port: 8090
+spring:
+  application:
+    name: cloudbinder-example
+  cloud:
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+          producerProperties:
+            schema.registry.url: http://localhost:8081
+            key.serializer: org.apache.kafka.common.serialization.StringSerializer
+            value.serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      bindings:
+        sendOrder-out-0:
+          destination: order-topic
+          content-type: "application/*+avro"
+          producer:
+            partition-key-expression: headers['partitionKey']
+            partition-count: 2

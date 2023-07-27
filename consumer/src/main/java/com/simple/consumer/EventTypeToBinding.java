@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum EventTypeToBinding {
 
-	UNPAID_ORDER_EVENT("com.simple.producer.UnpaidOrder", "unpaidOrder"),
-	PREPAID_ORDER_EVENT("com.simple.producer.PrepaidOrder", "prepaidOrder"), UNKNOWN("unknown", "unknownEvent");
+	UNPAID_ORDER_EVENT("com.simple.events.avro.UnpaidOrder", "unpaidOrder"),
+	PREPAID_ORDER_EVENT("com.simple.events.avro.PrepaidOrder", "prepaidOrder"), UNKNOWN("unknown", "unknownEvent");
 
 	public final String type;
 	public final String binding;

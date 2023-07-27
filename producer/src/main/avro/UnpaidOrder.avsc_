@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "UnpaidOrder",
+  "namespace":"com.simple.events.avro",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "owner",
+      "type": "string"
+    },
+    {
+      "name": "outland",
+      "type": "boolean"
+    },
+    {
+      "name": "timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "date"
+      }
+    }
+
+  ]
+}

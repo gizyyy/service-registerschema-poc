@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: cloudbinder-example
+  cloud:
+    function:
+      routing:
+        enabled: true
+      definition: functionRouter
+    stream:
+      kafka:
+        binder:
+          brokers: localhost:9092
+          producerProperties:
+            schema.registry.url: http://localhost:8081
+            key.serializer: org.apache.kafka.common.serialization.StringSerializer
+            value.serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+          consumerProperties:
+            schema.registry.url: http://localhost:8081
+            key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            value.deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
+            specific.avro.reader: true
+      bindings:
+        functionRouter-in-0:
+          destination: order-topic
+          content-type: "application/*+avro"
+          group: myGroup
+          consumer:
+            concurrency: 2
+            start-offset: latest
+            

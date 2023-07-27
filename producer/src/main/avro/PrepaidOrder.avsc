@@ -1,0 +1,29 @@
+{
+  "type": "record",
+  "name": "PrepaidOrder",
+  "namespace":"com.simple.events.avro",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "name": "owner",
+      "type": "string"
+    },
+    {
+      "name": "outland",
+      "type": "boolean"
+    },
+    {
+      "name": "paidAmount",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 16,
+        "scale": 2
+      }
+    }
+
+  ]
+}
